@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Quiz — Host</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    onload="katexReady=true; applyPendingRenders()"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --border: #e2e5ea;
+      --border-focus: #6c63ff;
+      --accent: #6c63ff;
+      --accent-dark: #5850e0;
+      --accent-light: rgba(108, 99, 255, 0.1);
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.1);
+      --success: #22c55e;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --text-faint: #9ca3af;
+      --active-bg: rgba(108, 99, 255, 0.06);
+      --active-border: #6c63ff;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body { padding-bottom: 32px; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    header h1 { font-size: 16px; font-weight: 700; color: var(--text); }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ---- Section titles ---- */
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+    }
+
+    /* ---- Add Question Form ---- */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s;
+      resize: vertical;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      border-color: var(--border-focus);
+      background: #fff;
+    }
+
+    textarea { min-height: 100px; line-height: 1.6; }
+
+    .field { margin-bottom: 16px; }
+    .field:last-of-type { margin-bottom: 0; }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
+
+    /* Image input row */
+    .image-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .image-row input[type="text"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .img-upload-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .img-upload-label:hover { border-color: var(--accent); color: var(--accent); }
+    input[type="file"] { display: none; }
+
+    .img-preview-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    #img-preview {
+      max-height: 160px;
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      object-fit: contain;
+      background: var(--bg);
+    }
+
+    .img-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+
+    .btn-sm {
+      padding: 7px 12px;
+      font-size: 13px;
+      border-radius: 7px;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--danger);
+      border: 1.5px solid transparent;
+    }
+
+    .btn-danger-ghost:hover { background: var(--danger-light); border-color: transparent; }
+
+    .btn-select {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1.5px solid transparent;
+    }
+
+    .btn-select.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-select:hover:not(.active) { border-color: var(--accent); }
+
+    /* Form actions */
+    .form-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-actions .btn-primary { flex: 1; }
+
+    /* ---- Live Banner ---- */
+    #live-banner {
+      background: linear-gradient(135deg, rgba(108,99,255,0.12) 0%, rgba(108,99,255,0.05) 100%);
+      border: 1.5px solid rgba(108,99,255,0.3);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .live-info { flex: 1; min-width: 0; }
+
+    .live-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: livePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    #live-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #no-live {
+      text-align: center;
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ---- Question List ---- */
+    #question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .q-item {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .q-item.active {
+      border-color: var(--active-border);
+      background: var(--active-bg);
+    }
+
+    .q-item-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+
+    .q-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .q-item.active .q-num {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .q-meta { flex: 1; min-width: 0; }
+
+    .q-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .q-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .q-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding: 0 12px 12px;
+    }
+
+    .q-body {
+      padding: 0 16px 14px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .q-body.open { display: block; }
+
+    .q-body-content {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 12px;
+    }
+
+    .q-body-img {
+      max-width: 100%;
+      max-height: 280px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 12px;
+      display: block;
+      background: var(--bg);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Edit modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 50;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 32px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1d27;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 100;
+      transition: transform 0.25s ease;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* KaTeX */
+    .katex { font-size: 1em !important; }
+    .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quiz &mdash; Host</h1>
+    <span class="badge" id="q-count">0 questions</span>
+  </header>
+
+  <div class="container">
+    <!-- Live Now -->
+    <div class="section-title">Now Displaying</div>
+    <div id="live-banner">
+      <div id="no-live" style="width:100%">No question selected — players see a waiting screen.</div>
+      <div class="live-info hidden" id="live-info">
+        <div class="live-label"><span class="live-dot"></span>Live</div>
+        <div id="live-title"></div>
+      </div>
+      <button class="btn btn-sm btn-ghost hidden" id="btn-clear" onclick="clearCurrent()">Clear</button>
+    </div>
+
+    <!-- Add Question -->
+    <div class="section-title">Add Question</div>
+    <div class="card">
+      <div class="field">
+        <label for="f-title">Title</label>
+        <input type="text" id="f-title" placeholder="e.g. Two Sum" />
+      </div>
+      <div class="field">
+        <label for="f-content">Content</label>
+        <textarea id="f-content" placeholder="Problem statement. Use $...$ for inline math and $$...$$ for display math."></textarea>
+        <div class="hint">Supports LaTeX: <code>$x^2$</code> inline, <code>$$\int_0^\infty$$</code> display</div>
+      </div>
+      <div class="field">
+        <label>Image (optional)</label>
+        <div class="image-row">
+          <input type="text" id="f-img-url" placeholder="https://... or paste a URL" oninput="onUrlInput(this)" />
+          <label class="img-upload-label" for="f-img-file">📎 Upload</label>
+          <input type="file" id="f-img-file" accept="image/*" onchange="onFileUpload(this)" />
+        </div>
+        <div id="img-preview-area" class="hidden" style="margin-top:10px;">
+          <div class="img-preview-wrap">
+            <img id="img-preview" src="" alt="Preview" />
+            <button class="img-remove" onclick="removeImage()" title="Remove image">&times;</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addQuestion()">Add Question</button>
+      </div>
+    </div>
+
+    <!-- Question List -->
+    <div class="section-title">Questions</div>
+    <div id="question-list"></div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop hidden" id="edit-modal" onclick="closeEditModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-title">Edit Question</div>
+      <input type="hidden" id="edit-id" />
+      <div class="field">
+        <label for="edit-title">Title</label>
+        <input type="text" id="edit-title" />
+      </div>
+      <div class="field">
+        <label for="edit-content">Content</label>
+        <textarea id="edit-content" style="min-height:120px"></textarea>
+      </div>
+      <div class="field">
+        <label>Image (optional)</label>
+        <div class="image-row">
+          <input type="text" id="edit-img-url" placeholder="https://..." oninput="onEditUrlInput(this)" />
+          <label class="img-upload-label" for="edit-img-file">📎 Upload</label>
+          <input type="file" id="edit-img-file" accept="image/*" onchange="onEditFileUpload(this)" />
+        </div>
+        <div id="edit-img-preview-area" class="hidden" style="margin-top:10px;">
+          <div class="img-preview-wrap">
+            <img id="edit-img-preview" src="" alt="Preview" />
+            <button class="img-remove" onclick="removeEditImage()" title="Remove image">&times;</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" style="flex:1" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="saveEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let questions = [];
+    let currentQuestionId = null;
+    let katexReady = false;
+    let pendingRenders = [];
+    let currentImageData = null;  // for add form
+    let editImageData = null;     // for edit modal
+
+    function applyPendingRenders() {
+      katexReady = true;
+      pendingRenders.forEach(el => doRenderMath(el));
+      pendingRenders = [];
+    }
+
+    function renderMath(el) {
+      if (!katexReady) { pendingRenders.push(el); return; }
+      doRenderMath(el);
+    }
+
+    function doRenderMath(el) {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false,
+      });
+    }
+
+    // ---- Image helpers (add form) ----
+    function onUrlInput(input) {
+      const url = input.value.trim();
+      if (url) {
+        currentImageData = url;
+        showPreview('img-preview-area', 'img-preview', url);
+      } else {
+        currentImageData = null;
+        document.getElementById('img-preview-area').classList.add('hidden');
+      }
+    }
+
+    function onFileUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentImageData = e.target.result;
+        document.getElementById('f-img-url').value = '';
+        showPreview('img-preview-area', 'img-preview', currentImageData);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+      currentImageData = null;
+      document.getElementById('f-img-url').value = '';
+      document.getElementById('f-img-file').value = '';
+      document.getElementById('img-preview-area').classList.add('hidden');
+    }
+
+    // ---- Image helpers (edit modal) ----
+    function onEditUrlInput(input) {
+      const url = input.value.trim();
+      editImageData = url || null;
+      if (url) showPreview('edit-img-preview-area', 'edit-img-preview', url);
+      else document.getElementById('edit-img-preview-area').classList.add('hidden');
+    }
+
+    function onEditFileUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        editImageData = e.target.result;
+        document.getElementById('edit-img-url').value = '';
+        showPreview('edit-img-preview-area', 'edit-img-preview', editImageData);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeEditImage() {
+      editImageData = null;
+      document.getElementById('edit-img-url').value = '';
+      document.getElementById('edit-img-file').value = '';
+      document.getElementById('edit-img-preview-area').classList.add('hidden');
+    }
+
+    function showPreview(areaId, imgId, src) {
+      const area = document.getElementById(areaId);
+      const img = document.getElementById(imgId);
+      img.src = src;
+      area.classList.remove('hidden');
+    }
+
+    // ---- Toast ----
+    let toastTimer;
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ---- API calls ----
+    async function addQuestion() {
+      const title = document.getElementById('f-title').value.trim();
+      const content = document.getElementById('f-content').value.trim();
+      if (!title && !content) { toast('Please add a title or content.'); return; }
+
+      const res = await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, image: currentImageData }),
+      });
+
+      if (res.ok) {
+        document.getElementById('f-title').value = '';
+        document.getElementById('f-content').value = '';
+        removeImage();
+        toast('Question added!');
+      } else {
+        toast('Error adding question.');
+      }
+    }
+
+    async function selectQuestion(id) {
+      const res = await fetch(`/api/questions/${id}/select`, { method: 'POST' });
+      if (!res.ok) toast('Error selecting question.');
+    }
+
+    async function clearCurrent() {
+      await fetch('/api/clear', { method: 'POST' });
+    }
+
+    async function deleteQuestion(id) {
+      if (!confirm('Delete this question?')) return;
+      const res = await fetch(`/api/questions/${id}`, { method: 'DELETE' });
+      if (!res.ok) toast('Error deleting question.');
+    }
+
+    function openEditModal(q) {
+      document.getElementById('edit-id').value = q.id;
+      document.getElementById('edit-title').value = q.title || '';
+      document.getElementById('edit-content').value = q.content || '';
+      editImageData = q.image || null;
+
+      if (q.image) {
+        showPreview('edit-img-preview-area', 'edit-img-preview', q.image);
+        if (q.image.startsWith('http')) document.getElementById('edit-img-url').value = q.image;
+        else document.getElementById('edit-img-url').value = '';
+      } else {
+        document.getElementById('edit-img-preview-area').classList.add('hidden');
+        document.getElementById('edit-img-url').value = '';
+      }
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal(e) {
+      if (e && e.target !== document.getElementById('edit-modal')) return;
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    async function saveEdit() {
+      const id = parseInt(document.getElementById('edit-id').value);
+      const title = document.getElementById('edit-title').value.trim();
+      const content = document.getElementById('edit-content').value.trim();
+
+      const res = await fetch(`/api/questions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, image: editImageData }),
+      });
+
+      if (res.ok) {
+        document.getElementById('edit-modal').classList.add('hidden');
+        toast('Saved!');
+      } else {
+        toast('Error saving.');
+      }
+    }
+
+    // ---- Render UI ----
+    function renderList() {
+      const container = document.getElementById('question-list');
+      document.getElementById('q-count').textContent =
+        questions.length === 1 ? '1 question' : `${questions.length} questions`;
+
+      if (questions.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No questions yet. Add one above.</p>
+          </div>`;
+        return;
+      }
+
+      // Preserve expanded state
+      const openIds = new Set(
+        [...container.querySelectorAll('.q-body.open')]
+          .map(el => parseInt(el.closest('.q-item').dataset.id))
+      );
+
+      container.innerHTML = questions.map((q, i) => {
+        const isActive = q.id === currentQuestionId;
+        const isOpen = openIds.has(q.id);
+        const preview = (q.content || '').replace(/\$+[^$]*\$+/g, '[math]').slice(0, 60);
+        return `
+          <div class="q-item${isActive ? ' active' : ''}" data-id="${q.id}">
+            <div class="q-item-header" onclick="toggleBody(${q.id})">
+              <div class="q-num">${i + 1}</div>
+              <div class="q-meta">
+                <div class="q-title">${escHtml(q.title || '(no title)')}</div>
+                ${preview ? `<div class="q-preview">${escHtml(preview)}${q.content && q.content.length > 60 ? '…' : ''}</div>` : ''}
+              </div>
+            </div>
+            <div class="q-actions">
+              <button class="btn btn-sm btn-select${isActive ? ' active' : ''}" onclick="selectQuestion(${q.id})">
+                ${isActive ? '✓ Displaying' : 'Display'}
+              </button>
+              <button class="btn btn-sm btn-ghost" onclick="openEditModal(${JSON.stringify(q).replace(/"/g, '&quot;')})">Edit</button>
+              <button class="btn btn-sm btn-danger-ghost" onclick="deleteQuestion(${q.id})">Delete</button>
+            </div>
+            <div class="q-body${isOpen ? ' open' : ''}" id="body-${q.id}">
+              ${q.content ? `<div class="q-body-content" id="qcontent-${q.id}">${escHtml(q.content)}</div>` : ''}
+              ${q.image ? `<img class="q-body-img" src="${escAttr(q.image)}" alt="Question image" />` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      // Render math in open bodies and newly rendered content
+      questions.forEach(q => {
+        const bodyEl = document.getElementById(`body-${q.id}`);
+        const contentEl = document.getElementById(`qcontent-${q.id}`);
+        if (bodyEl && bodyEl.classList.contains('open') && contentEl) {
+          renderMath(contentEl);
+        }
+      });
+    }
+
+    function toggleBody(id) {
+      const body = document.getElementById(`body-${id}`);
+      const isOpen = body.classList.toggle('open');
+      if (isOpen) {
+        const contentEl = document.getElementById(`qcontent-${id}`);
+        if (contentEl) renderMath(contentEl);
+      }
+    }
+
+    function renderLiveBanner() {
+      const noLive = document.getElementById('no-live');
+      const liveInfo = document.getElementById('live-info');
+      const liveTitle = document.getElementById('live-title');
+      const btnClear = document.getElementById('btn-clear');
+      const current = questions.find(q => q.id === currentQuestionId);
+
+      if (current) {
+        noLive.classList.add('hidden');
+        liveInfo.classList.remove('hidden');
+        btnClear.classList.remove('hidden');
+        liveTitle.textContent = current.title || current.content?.slice(0, 50) || '(no title)';
+      } else {
+        noLive.classList.remove('hidden');
+        liveInfo.classList.add('hidden');
+        btnClear.classList.add('hidden');
+      }
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escAttr(str) {
+      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ---- SSE ----
+    function connect() {
+      const es = new EventSource('/api/events');
+
+      es.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'init') {
+          questions = msg.questions;
+          currentQuestionId = msg.currentQuestion?.id ?? null;
+          renderList();
+          renderLiveBanner();
+        } else if (msg.type === 'questions_updated') {
+          questions = msg.questions;
+          renderList();
+          renderLiveBanner();
+        } else if (msg.type === 'question_selected') {
+          currentQuestionId = msg.currentQuestion?.id ?? null;
+          renderList();
+          renderLiveBanner();
+        }
+      };
+
+      es.onerror = () => {
+        es.close();
+        setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+
+    // Enter key in title field submits form
+    document.getElementById('f-title').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('f-content').focus();
+    });
+  </script>
+</body>
+</html>

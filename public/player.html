@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Quiz — Player</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    onload="onKatexReady()"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.25);
+      --text: #e8eaf0;
+      --text-muted: #6b7280;
+      --tag-bg: rgba(108, 99, 255, 0.15);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .status-dot.disconnected {
+      background: #ef4444;
+      box-shadow: 0 0 6px #ef4444;
+    }
+
+    .status-dot.connecting {
+      background: #f59e0b;
+      box-shadow: 0 0 6px #f59e0b;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    #waiting {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .waiting-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    #waiting h2 {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    #waiting p {
+      font-size: 14px;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    #question-card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(108,99,255,0.08) 0%, transparent 100%);
+    }
+
+    .question-number {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    #q-title {
+      font-size: clamp(18px, 5vw, 26px);
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .card-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #q-content {
+      font-size: clamp(15px, 4vw, 17px);
+      line-height: 1.8;
+      color: var(--text);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    #q-image {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      object-fit: contain;
+      max-height: 420px;
+      background: #000;
+    }
+
+    /* KaTeX overrides */
+    .katex { font-size: 1.05em !important; }
+    .katex-display { overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quiz &mdash; Player</h1>
+    <div class="status-dot connecting" id="status-dot" title="Connecting..."></div>
+  </header>
+
+  <main>
+    <div id="waiting">
+      <div class="waiting-icon">⏳</div>
+      <h2>Waiting for question...</h2>
+      <p>The host hasn't displayed a question yet.</p>
+    </div>
+
+    <div id="question-card" class="hidden">
+      <div class="card-header">
+        <div class="question-number">Question</div>
+        <div id="q-title"></div>
+      </div>
+      <div class="card-body">
+        <div id="q-content"></div>
+        <img id="q-image" class="hidden" src="" alt="Question image" />
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let katexReady = false;
+    let pendingRender = null;
+
+    function onKatexReady() {
+      katexReady = true;
+      if (pendingRender) {
+        renderMath(pendingRender);
+        pendingRender = null;
+      }
+    }
+
+    function renderMath(el) {
+      if (!katexReady) { pendingRender = el; return; }
+      renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false,
+      });
+    }
+
+    const waiting = document.getElementById('waiting');
+    const card = document.getElementById('question-card');
+    const qTitle = document.getElementById('q-title');
+    const qContent = document.getElementById('q-content');
+    const qImage = document.getElementById('q-image');
+    const statusDot = document.getElementById('status-dot');
+
+    function showQuestion(q) {
+      if (!q) {
+        waiting.classList.remove('hidden');
+        card.classList.add('hidden');
+        return;
+      }
+
+      qTitle.textContent = q.title || '';
+      qContent.textContent = q.content || '';
+
+      if (q.image) {
+        qImage.src = q.image;
+        qImage.classList.remove('hidden');
+      } else {
+        qImage.classList.add('hidden');
+        qImage.src = '';
+      }
+
+      // Hide title area if empty
+      card.querySelector('.card-header').style.display = q.title ? '' : 'none';
+
+      waiting.classList.add('hidden');
+      card.classList.remove('hidden');
+
+      // Render math after DOM update
+      requestAnimationFrame(() => {
+        renderMath(qContent);
+        renderMath(qTitle);
+      });
+    }
+
+    function connect() {
+      statusDot.className = 'status-dot connecting';
+      const es = new EventSource('/api/events');
+
+      es.onopen = () => {
+        statusDot.className = 'status-dot';
+      };
+
+      es.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'init' || msg.type === 'question_selected') {
+          showQuestion(msg.currentQuestion);
+        }
+      };
+
+      es.onerror = () => {
+        statusDot.className = 'status-dot disconnected';
+        es.close();
+        setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>
