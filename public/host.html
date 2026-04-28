@@ -482,9 +482,51 @@
     .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 
     .hidden { display: none !important; }
+
+    /* Password gate */
+    #pw-gate {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #pw-gate .card {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    #pw-gate h2 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    #pw-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 8px;
+      min-height: 16px;
+    }
   </style>
 </head>
 <body>
+  <div id="pw-gate">
+    <div class="card">
+      <h2>Host Access</h2>
+      <div class="field">
+        <label for="pw-input">Password</label>
+        <input type="password" id="pw-input" placeholder="Enter password" autocomplete="current-password" />
+        <div id="pw-error"></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitPassword()">Enter</button>
+    </div>
+  </div>
+
   <header>
     <h1>Quiz &mdash; Host</h1>
     <span class="badge" id="q-count">0 questions</span>
@@ -575,6 +617,28 @@
   <div id="toast"></div>
 
   <script>
+    const HOST_PASSWORD = 'hostpass'; // change this
+
+    function submitPassword() {
+      const input = document.getElementById('pw-input');
+      if (input.value === HOST_PASSWORD) {
+        sessionStorage.setItem('host_auth', '1');
+        document.getElementById('pw-gate').remove();
+      } else {
+        document.getElementById('pw-error').textContent = 'Incorrect password.';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    if (sessionStorage.getItem('host_auth') === '1') {
+      document.getElementById('pw-gate').remove();
+    } else {
+      document.getElementById('pw-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitPassword();
+      });
+    }
+
     let questions = [];
     let currentQuestionId = null;
     let katexReady = false;
