@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,28 @@ let questions = [];
 let currentQuestionId = null;
 let clients = [];
 let nextId = 1;
+
+function loadQuestionsFromFile() {
+  const filePath = path.join(__dirname, 'questions.json');
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(raw);
+    const items = Array.isArray(data) ? data : (data.questions || []);
+    questions = items.map((q, i) => ({
+      id: i + 1,
+      title: q.title || '',
+      content: q.question || q.content || '',
+      image: q.image || null,
+      createdAt: new Date().toISOString(),
+    }));
+    nextId = questions.length + 1;
+    console.log(`Loaded ${questions.length} question(s) from questions.json`);
+  } catch (e) {
+    console.warn('Could not load questions.json:', e.message);
+  }
+}
+
+loadQuestionsFromFile();
 
 function broadcast(data) {
   const payload = `data: ${JSON.stringify(data)}\n\n`;
@@ -94,6 +117,19 @@ app.post('/api/clear', (req, res) => {
   currentQuestionId = null;
   broadcast({ type: 'question_selected', currentQuestion: null });
   res.json({ success: true });
+});
+
+app.post('/api/countdown', (req, res) => {
+  broadcast({ type: 'countdown_start' });
+  res.json({ success: true });
+});
+
+app.post('/api/reload', (req, res) => {
+  currentQuestionId = null;
+  loadQuestionsFromFile();
+  broadcast({ type: 'questions_updated', questions });
+  broadcast({ type: 'question_selected', currentQuestion: null });
+  res.json({ success: true, count: questions.length });
 });
 
 app.delete('/api/questions/:id', (req, res) => {

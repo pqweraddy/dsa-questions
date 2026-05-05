@@ -542,6 +542,7 @@
         <div id="live-title"></div>
       </div>
       <button class="btn btn-sm btn-ghost hidden" id="btn-clear" onclick="clearCurrent()">Clear</button>
+      <button class="btn btn-sm btn-ghost" id="btn-countdown" onclick="triggerCountdown()">⏱ Countdown</button>
     </div>
 
     <!-- Add Question -->
@@ -576,7 +577,10 @@
     </div>
 
     <!-- Question List -->
-    <div class="section-title">Questions</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 12px">
+      <div class="section-title" style="margin:0">Questions</div>
+      <button class="btn btn-sm btn-ghost" onclick="reloadFromJson()">↺ Reload JSON</button>
+    </div>
     <div id="question-list"></div>
   </div>
 
@@ -773,6 +777,17 @@
 
     async function clearCurrent() {
       await fetch('/api/clear', { method: 'POST' });
+    }
+
+    async function triggerCountdown() {
+      await fetch('/api/countdown', { method: 'POST' });
+    }
+
+    async function reloadFromJson() {
+      const res = await fetch('/api/reload', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) toast(`Reloaded ${data.count} question(s) from questions.json`);
+      else toast('Failed to reload.');
     }
 
     async function deleteQuestion(id) {

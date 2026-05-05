@@ -83,9 +83,11 @@
     main {
       flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 24px 16px;
+      gap: 20px;
     }
 
     #waiting {
@@ -198,6 +200,55 @@
     .katex-display { overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
 
     .hidden { display: none !important; }
+
+    /* Countdown section */
+    #countdown-section {
+      width: 100%;
+      max-width: 680px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: slideIn 0.25s ease;
+    }
+
+    .cd-number {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--text);
+      min-width: 54px;
+      text-align: center;
+      line-height: 1;
+      animation: numPop 0.3s ease;
+    }
+
+    .cd-number.go {
+      color: #e20404;
+      font-size: 40px;
+    }
+
+    @keyframes numPop {
+      from { transform: scale(1.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .cd-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    #cd-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -223,12 +274,104 @@
         <img id="q-image" class="hidden" src="" alt="Question image" />
       </div>
     </div>
+
+    <div id="countdown-section" class="hidden">
+      <div class="cd-number" id="cd-number">3</div>
+      <div class="cd-bar-wrap">
+        <div id="cd-bar"></div>
+      </div>
+    </div>
   </main>
 
   <footer>
     Copyright &copy; 2026 DSA Activity Group
   </footer>
   <script>
+    // ---- Audio ----
+    let audioCtx = null;
+
+    function getAudio() {
+      if (!audioCtx || audioCtx.state === 'closed') {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    // Unlock AudioContext on first user gesture (required on mobile)
+    ['click', 'touchstart'].forEach(evt =>
+      document.addEventListener(evt, () => getAudio(), { once: true })
+    );
+
+    function playTick() {
+      const ctx = getAudio();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 660;
+      gain.gain.setValueAtTime(0.55, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.22);
+    }
+
+    function playGo() {
+      const ctx = getAudio();
+      [880, 1108, 1320].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.1;
+        gain.gain.setValueAtTime(0.45, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+        osc.start(t);
+        osc.stop(t + 0.6);
+      });
+    }
+
+    // ---- Countdown ----
+    let countdownTimers = [];
+
+    function runCountdown() {
+      countdownTimers.forEach(clearTimeout);
+      countdownTimers = [];
+
+      const section = document.getElementById('countdown-section');
+      const numEl = document.getElementById('cd-number');
+      const bar = document.getElementById('cd-bar');
+
+      function showStep(text, isGo) {
+        numEl.className = 'cd-number' + (isGo ? ' go' : '');
+        numEl.textContent = text;
+        numEl.style.animation = 'none';
+        numEl.offsetHeight; // force reflow to restart animation
+        numEl.style.animation = '';
+      }
+
+      // Reset bar instantly, then kick off a single 3-second linear sweep
+      bar.style.transition = 'none';
+      bar.style.width = '100%';
+      bar.offsetHeight;
+
+      section.classList.remove('hidden');
+      showStep('3', false);
+      playTick();
+
+      bar.style.transition = 'width 3s linear';
+      bar.style.width = '0%';
+
+      countdownTimers.push(
+        setTimeout(() => { showStep('2', false); playTick(); }, 1000),
+        setTimeout(() => { showStep('1', false); playTick(); }, 2000),
+        setTimeout(() => { showStep('JUMP!', true); playGo(); }, 3000),
+        setTimeout(() => section.classList.add('hidden'), 4100)
+      );
+    }
+
     let katexReady = false;
     let pendingRender = null;
 
@@ -303,6 +446,8 @@
         const msg = JSON.parse(e.data);
         if (msg.type === 'init' || msg.type === 'question_selected') {
           showQuestion(msg.currentQuestion);
+        } else if (msg.type === 'countdown_start') {
+          runCountdown();
         }
       };
 

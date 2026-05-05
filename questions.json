@@ -1,0 +1,189 @@
+{
+    "questions": [
+        {
+            "index": 0,
+            "question": "這門課的課名為「資料結構與演算法」",
+            "answer": "true"
+        },
+        {
+            "index": 1,
+            "question": "一個函數是 $O(3^n)$ 意味著他也是 $O(2^n)$",
+            "answer": "false"
+        },
+        {
+            "index": 3,
+            "question": "一個函數是 $O(\\sqrt n)$ 意味著他也是 $O(\\log n)$",
+            "answer": "false"
+        },
+        {
+            "index": 4,
+            "question": "selection sort 的時間複雜度是 $O(n\\log n)$",
+            "answer": "false"
+        },
+        {
+            "index": 5,
+            "question": "可以用 singly linked list 實作 stack，使得 push 和 pop 的時間複雜度都是 $O(1)$",
+            "answer": "true"
+        },
+        {
+            "index": 6,
+            "question": "可以用 singly linked list 實作 deque，使得 push 和 pop 的時間複雜度都是 $O(1)$",
+            "answer": "false"
+        },
+        {
+            "index": 7,
+            "question": "doubly linked list 中，已知某節點的 pointer，可以在 $O(1)$ 時間內刪除該節點",
+            "answer": "true"
+        },
+        {
+            "index": 8,
+            "question": "可以對 sorted doubly linked list 使用二分搜尋，在 $O(\\log n)$ 時間內找到想要的值",
+            "answer": "false"
+        },
+        {
+            "index": 9,
+            "question": "用兩個 queue 可以實作 stack，使得 push 和 pop 的 worst-case 時間複雜度都是 $O(1)$",
+            "answer": "false"
+        },
+        {
+            "index": 10,
+            "question": "對 balanced BST 做 in-order traversal 的時間複雜度是 $O(\\log n)$",
+            "answer": "false"
+        },
+        {
+            "index": 11,
+            "question": "Binary search tree 的 `Pre-order Traversal` 會是排序好的序列",
+            "answer": "false"
+        },
+        {
+            "index": 12,
+            "question": "Every subtree of a `perfect binary tree` is a `complete binary tree`",
+            "answer": "true"
+        },
+        {
+            "index": 13,
+            "question": "Every subtree of a `complete binary tree` is a `perfect binary tree`",
+            "answer": "false"
+        },
+        {
+            "index": 14,
+            "question": "一棵有 n 個節點的 complete binary tree，其高度是 $O(\\log n)$",
+            "answer": "true"
+        },
+        {
+            "index": 15,
+            "question": "singly linked list 是一種 tree",
+            "answer": "true"
+        },
+        {
+            "index": 16,
+            "question": "binary heap 是一棵 complete Binary Tree",
+            "answer": "true"
+        },
+        {
+            "index": 17,
+            "question": "pop 掉 min heap 中的 root 後會挑出 heap 中最大的數填入 root，再維護 heap 的性質",
+            "answer": "false"
+        },
+        {
+            "index": 18,
+            "question": "在 max heap 中挑一個數字，他會小於等於所有深度比他淺的數字",
+            "answer": "false"
+        },
+        {
+            "index": 19,
+            "question": "heap 中任意子樹都是一個 heap",
+            "answer": "true"
+        },
+        {
+            "index": 20,
+            "question": "heapify 一個陣列的時間複雜度最快只須 $O(n)$",
+            "answer": "true"
+        },
+        {
+            "index": 21,
+            "question": "將 n 個元素逐一 insert 進 heap 的時間複雜度是 $O(n)$",
+            "answer": "false"
+        },
+        {
+            "index": 22,
+            "question": "heap 可以在 $O(\\log n)$ 時間內查找一個數",
+            "answer": "false"
+        },
+        {
+            "index": 23,
+            "question": "tree sort 的 平均時間複雜度 是 $\\theta(n\\log n)$",
+            "answer": "true"
+        },
+        {
+            "index": 24,
+            "question": "quick sort 的 worst-case 時間複雜度是 $O(n\\log n)$",
+            "answer": "false"
+        },
+        {
+            "index": 25,
+            "question": "merge sort 的時間複雜度是 $O(n^2)$",
+            "answer": "true"
+        },
+        {
+            "index": 26,
+            "question": "做 Rabin-Karp 時，為了避免 overflow 且最小化 collision 的機率，應將 q 設為略小於變數能儲存的最大值",
+            "answer": "false"
+        },
+        {
+            "index": 27,
+            "question": "算 prefix function 的時間複雜度是 $O(m)$",
+            "answer": "true"
+        },
+        {
+            "index": 28,
+            "question": "KMP 做 string matching 的時間複雜度是 $\\theta(nm)$",
+            "answer": "false"
+        },
+        {
+            "index": 29,
+            "question": "一個邊都沒有的 graph 是 disconnected",
+            "answer": "false"
+        },
+        {
+            "index": 30,
+            "question": "有向圖中所有點的 in-degree 和會等於 out-degree 和",
+            "answer": "true"
+        },
+        {
+            "index": 31,
+            "question": "一個 undirected graph 中，所有節點的 degree 總和是邊數的兩倍",
+            "answer": "true"
+        },
+        {
+            "index": 32,
+            "question": "一個 directed connected graph 所有節點的集合是個 strongly connected component",
+            "answer": "false"
+        },
+        {
+            "index": 33,
+            "question": "用 adjacency lists 可以在 $O(1)$ 時間內確認一條邊存不存在",
+            "answer": "false"
+        },
+        {
+            "index": 34,
+            "question": "對一個 DAG 做 DFS 可能會出現 back edge",
+            "answer": "false"
+        },
+        {
+            "index": 35,
+            "question": "對一個 DAG 做 DFS 可能會出現 forward edge",
+            "answer": "true"
+        },
+        {
+            "index": 36,
+            "question": "對 undirected graph 做 DFS 可能會出現 cross edge",
+            "answer": "false"
+        },
+        {
+            "index": 37,
+            "question": "在對一個 DAG 做 DFS 的過程中，越早經過的點，會位在 topological sequence 的越前面",
+            "answer": "false"
+        }
+    ]
+}

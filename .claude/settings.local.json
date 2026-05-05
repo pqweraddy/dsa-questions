@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(curl -s -X POST http://localhost:3000/api/reload)"
     ]
   }
 }
